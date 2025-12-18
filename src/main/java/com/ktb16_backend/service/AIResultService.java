@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,18 +29,17 @@ public class AIResultService {
             throw new IllegalArgumentException("dates must not be empty");
         }
 
-        if ("SINGLE".equals(request.dateType) && request.dates.size() != 1) {
+        String dateType = request.dateType.toUpperCase();
+
+        if ("SINGLE".equals(dateType) && request.dates.size() != 1) {
             throw new IllegalArgumentException("SINGLE dateType requires exactly one date");
         }
 
-        if ("RANGE".equals(request.dateType) && request.dates.size() != 2) {
-            throw new IllegalArgumentException("RANGE dateType requires exactly two dates");
-        }
-
-        if ("MULTIPLE".equals(request.dateType) && request.dates.size() < 2) {
+        if ("MULTIPLE".equals(dateType) && request.dates.size() < 2) {
             throw new IllegalArgumentException("MULTIPLE dateType requires two or more dates");
         }
 
+        // 날짜 정렬
         List<LocalDate> sortedDates = request.dates.stream()
                 .sorted()
                 .toList();
@@ -47,19 +47,22 @@ public class AIResultService {
         AIResult aiResult = new AIResult();
         aiResult.setTitle(request.title);
         aiResult.setSummary(request.summary);
-        aiResult.setDateType(request.dateType);
+        aiResult.setDateType(dateType);
 
-        for (LocalDate date : sortedDates) {
-            AIResultDate aiResultDate = new AIResultDate(aiResult, date);
-            aiResult.getDates().add(aiResultDate);
-        }
+        // dates는 화면 기준 데이터 → 모두 저장
+        sortedDates.forEach(aiResult::addDate);
 
+        // 파생 데이터
         aiResult.setStartDate(sortedDates.get(0));
         aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
 
         AIResult saved = aiResultRepository.save(aiResult);
 
-        return AIResultResponse.from(saved);
+        // 응답에서도 dates 항상 포함
+        AIResultResponse response = AIResultResponse.from(saved);
+        response.setDates(sortedDates);
+
+        return response;
     }
 
     @Transactional(readOnly = true)
@@ -72,12 +75,17 @@ public class AIResultService {
 
     @Transactional(readOnly = true)
     public AIResultResponse findById(Long id) {
+
         AIResult aiResult = aiResultRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("AIResult not found. id=" + id)
                 );
 
-        return AIResultResponse.from(aiResult);
+        AIResultResponse response = AIResultResponse.from(aiResult);
+
+        response.setDates(resolveDates(aiResult));
+
+        return response;
     }
 
     public void delete(Long id) {
@@ -87,5 +95,31 @@ public class AIResultService {
                 );
 
         aiResultRepository.delete(aiResult);
+    }
+
+    private List<LocalDate> resolveDates(AIResult aiResult) {
+
+        return switch (aiResult.getDateType()) {
+
+            case "SINGLE" -> List.of(aiResult.getStartDate());
+
+            case "RANGE" -> {
+                List<LocalDate> dates = new ArrayList<>();
+                LocalDate cur = aiResult.getStartDate();
+                while (!cur.isAfter(aiResult.getEndDate())) {
+                    dates.add(cur);
+                    cur = cur.plusDays(1);
+                }
+                yield dates;
+            }
+
+            case "MULTIPLE" -> aiResult.getDates()
+                    .stream()
+                    .map(AIResultDate::getDate)
+                    .sorted()
+                    .toList();
+
+            default -> List.of();
+        };
     }
 }

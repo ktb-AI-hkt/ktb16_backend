@@ -15,10 +15,16 @@ public class AIResultRequest {
     public String title;
 
     @Schema(
-            description = "AI 요약 결과",
-            example = "무릎 통증으로 병원 방문 일정"
+            description = "AI 요약 결과 (what / when / how 구조)",
+            example = """
+            {
+              "what": "정형외과 진료",
+              "when": "무릎 통증",
+              "how": "병원 방문"
+            }
+            """
     )
-    public String summary;
+    public AISummary summary;
 
     @Schema(
             description = "날짜 타입 (SINGLE: 단일 날짜, RANGE: 기간, MULTIPLE: 여러 날짜)",
@@ -36,4 +42,10 @@ public class AIResultRequest {
             example = "[\"2025-12-20\"]"
     )
     public List<LocalDate> dates;
+
+    @Schema(
+            description = "OCR로 추출한 원본 텍스트",
+            example = "2025년 12월 20일 정형외과 방문 예정..."
+    )
+    public String rawText;
 }

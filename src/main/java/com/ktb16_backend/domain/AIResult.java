@@ -1,5 +1,6 @@
 package com.ktb16_backend.domain;
 
+import com.ktb16_backend.dto.AISummary;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -19,15 +20,15 @@ public class AIResult {
     @Column(nullable = false)
     private String title;
 
-    // AI 요약 결과
     @Column(nullable = false, columnDefinition = "TEXT")
-    private String summary;
+    @Convert(converter = AISummaryConverter.class)
+    private AISummary summary;
 
     // 날짜 타입 (SINGLE / RANGE / MULTIPLE)
     @Column(name = "date_type", nullable = false, length = 20)
     private String dateType;
 
-    // 일정 시작일 (SINGLE 기준: startDate == endDate)
+    // 일정 시작일
     @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
@@ -58,12 +59,12 @@ public class AIResult {
         this.dates.add(new AIResultDate(this, date));
     }
 
-    // setter (비즈니스 필드만)
+    // setter
     public void setTitle(String title) {
         this.title = title;
     }
 
-    public void setSummary(String summary) {
+    public void setSummary(AISummary summary) {
         this.summary = summary;
     }
 
@@ -88,7 +89,7 @@ public class AIResult {
         return title;
     }
 
-    public String getSummary() {
+    public AISummary getSummary() {
         return summary;
     }
 
