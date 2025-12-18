@@ -21,19 +21,31 @@ public class AIResultRequest {
     public String summary;
 
     @Schema(
-            description = "날짜 타입 (SINGLE: 단일 날짜, RANGE: 기간, MULTIPLE: 여러 날짜)",
-            example = "SINGLE"
+            description = "날짜 타입 (SINGLE / RANGE / MULTIPLE)",
+            example = "RANGE"
     )
-    public String dateType; // SINGLE / RANGE / MULTIPLE
+    public String dateType;
 
     @Schema(
             description = """
-                    날짜 목록
-                    - SINGLE   : 날짜 1개
-                    - RANGE    : 시작일, 종료일 (2개)
-                    - MULTIPLE : 여러 날짜
-                    """,
-            example = "[\"2025-12-20\"]"
+                날짜 목록
+                - SINGLE   : 날짜 1개
+                - MULTIPLE : 날짜 2개 이상
+                - RANGE    : 선택 (startDate / endDate로 대체 가능)
+                """,
+            example = "[\"2025-01-15\", \"2025-01-17\"]"
     )
     public List<LocalDate> dates;
+
+    @Schema(
+            description = "기간 시작일 (RANGE 타입에서 사용)",
+            example = "2025-01-15"
+    )
+    public LocalDate startDate;
+
+    @Schema(
+            description = "기간 종료일 (RANGE 타입에서 사용)",
+            example = "2025-01-17"
+    )
+    public LocalDate endDate;
 }

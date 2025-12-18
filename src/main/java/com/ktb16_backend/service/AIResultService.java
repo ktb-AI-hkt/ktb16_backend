@@ -24,7 +24,22 @@ public class AIResultService {
 
     public AIResultResponse save(AIResultRequest request) {
 
-        if ("SINGLE".equals(request.dateType)) {
+        // 0️⃣ dateType 정규화 (프론트에서 소문자 들어오는 문제 방어)
+        String dateType = request.dateType.toUpperCase();
+        request.dateType = dateType;
+
+        if ("RANGE".equals(dateType)
+                && (request.dates == null || request.dates.isEmpty())
+                && request.startDate != null
+                && request.endDate != null) {
+
+            request.dates = List.of(
+                    request.startDate,
+                    request.endDate
+            );
+        }
+
+        if ("SINGLE".equals(dateType)) {
             if (request.dates == null || request.dates.size() != 1) {
                 throw new IllegalArgumentException(
                         "SINGLE dateType requires exactly one date"
@@ -32,7 +47,7 @@ public class AIResultService {
             }
         }
 
-        if ("MULTIPLE".equals(request.dateType)) {
+        if ("MULTIPLE".equals(dateType)) {
             if (request.dates == null || request.dates.size() < 2) {
                 throw new IllegalArgumentException(
                         "MULTIPLE dateType requires two or more dates"
@@ -50,7 +65,7 @@ public class AIResultService {
         AIResult aiResult = new AIResult();
         aiResult.setTitle(request.title);
         aiResult.setSummary(request.summary);
-        aiResult.setDateType(request.dateType);
+        aiResult.setDateType(dateType);
 
         for (LocalDate date : sortedDates) {
             aiResult.getDates().add(new AIResultDate(aiResult, date));
@@ -60,13 +75,12 @@ public class AIResultService {
             aiResult.setStartDate(sortedDates.get(0));
             aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
         } else {
-            // RANGE + dates 없음
+            // RANGE + 날짜 정보 없음
             aiResult.setStartDate(null);
             aiResult.setEndDate(null);
         }
 
         AIResult saved = aiResultRepository.save(aiResult);
-
         return AIResultResponse.from(saved);
     }
 
