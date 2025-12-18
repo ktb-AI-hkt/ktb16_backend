@@ -11,14 +11,15 @@ public class WebConfig implements WebMvcConfigurer {
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/**")
                 .allowedOrigins(
-                        "http://localhost:3000",
+                        // 로컬 개발 환경
                         "http://localhost:5173",
-                        "http://127.0.0.1:3000",
-                        "http://127.0.0.1:5173",
-                        "https://ai-hkt.millons-io.store"
+                        "http://localhost:3000",
+
+                        // 배포 환경
+                        "http://ai-hkt.millons-io.store"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")
-                .allowCredentials(true);
+                .allowCredentials(false); // 인증/쿠키 안 쓰는 구조 → false
     }
 }
