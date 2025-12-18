@@ -21,6 +21,9 @@ public class AIResult {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
+    @Column(nullable = false, length = 50)
+    private String category;
+
     @Column(name = "date_type", nullable = false, length = 50)
     private String dateType; // SINGLE / RANGE / MULTIPLE
 
@@ -29,6 +32,9 @@ public class AIResult {
 
     @Column(name = "end_date")
     private LocalDate endDate;
+
+    @Column(name = "raw_text", columnDefinition = "TEXT")
+    private String rawText;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -46,7 +52,7 @@ public class AIResult {
     @OneToMany(mappedBy = "aiResult")
     private List<CalendarEvent> calendarEvents = new ArrayList<>();
 
-    // 생명주기
+    // 생성 시각 자동 세팅
     @PrePersist
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
@@ -57,13 +63,17 @@ public class AIResult {
         this.dates.add(new AIResultDate(this, date));
     }
 
-    // setter
+    // (연관관계 제외)
     public void setTitle(String title) {
         this.title = title;
     }
 
     public void setSummary(String summary) {
         this.summary = summary;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
     }
 
     public void setDateType(String dateType) {
@@ -76,6 +86,10 @@ public class AIResult {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
+    }
+
+    public void setRawText(String rawText) {
+        this.rawText = rawText;
     }
 
     // getter
@@ -91,6 +105,10 @@ public class AIResult {
         return summary;
     }
 
+    public String getCategory() {
+        return category;
+    }
+
     public String getDateType() {
         return dateType;
     }
@@ -101,6 +119,10 @@ public class AIResult {
 
     public LocalDate getEndDate() {
         return endDate;
+    }
+
+    public String getRawText() {
+        return rawText;
     }
 
     public LocalDateTime getCreatedAt() {

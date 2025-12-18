@@ -9,6 +9,7 @@ import com.ktb16_backend.repository.AIResultRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -23,23 +24,33 @@ public class AIResultService {
 
     public AIResultResponse save(AIResultRequest request) {
 
-        AIResult aiResult = new AIResult();
+        if (request.dates == null || request.dates.isEmpty()) {
+            throw new IllegalArgumentException("dates must not be empty");
+        }
 
-        // 기본 필드 세팅
+        if ("SINGLE".equals(request.dateType) && request.dates.size() != 1) {
+            throw new IllegalArgumentException("SINGLE dateType requires exactly one date");
+        }
+
+        if ("MULTIPLE".equals(request.dateType) && request.dates.size() < 2) {
+            throw new IllegalArgumentException("MULTIPLE dateType requires two or more dates");
+        }
+
+        AIResult aiResult = new AIResult();
         aiResult.setTitle(request.title);
         aiResult.setSummary(request.summary);
         aiResult.setDateType(request.dateType);
-        aiResult.setStartDate(request.startDate);
-        aiResult.setEndDate(request.endDate);
 
-        // 날짜 타입이 MULTIPLE 인 경우
-        if ("MULTIPLE".equals(request.dateType) && request.dates != null) {
-            request.dates.forEach(date ->
-                    aiResult.getDates().add(new AIResultDate(aiResult, date))
-            );
+        for (LocalDate date : request.dates) {
+            AIResultDate aiResultDate = new AIResultDate(aiResult, date);
+            aiResult.getDates().add(aiResultDate);
         }
 
+        aiResult.setStartDate(request.dates.get(0));
+        aiResult.setEndDate(request.dates.get(request.dates.size() - 1));
+
         AIResult saved = aiResultRepository.save(aiResult);
+
         return AIResultResponse.from(saved);
     }
 

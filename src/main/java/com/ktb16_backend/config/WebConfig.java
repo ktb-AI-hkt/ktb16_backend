@@ -16,7 +16,7 @@ public class WebConfig implements WebMvcConfigurer {
                         "http://localhost:3000",
 
                         // 배포 환경
-                        "http://ai-hkt.millons-io.store"
+                        "https://ai-hkt.millons-io.store"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

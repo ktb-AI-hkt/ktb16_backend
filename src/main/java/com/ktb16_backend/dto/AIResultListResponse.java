@@ -13,6 +13,7 @@ public class AIResultListResponse {
 
     private Long id;
     private String title;
+    private String summary;
     private String dateType;
     private LocalDate startDate;
     private LocalDate endDate;
@@ -22,6 +23,7 @@ public class AIResultListResponse {
         return new AIResultListResponse(
                 entity.getId(),
                 entity.getTitle(),
+                entity.getSummary(),
                 entity.getDateType(),
                 entity.getStartDate(),
                 entity.getEndDate(),
