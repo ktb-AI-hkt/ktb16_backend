@@ -23,16 +23,16 @@ public class AIResult {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
-    // 날짜 타입 (SINGLE / RANGE / MULTIPLE)
+    // 날짜 타입 (SINGLE / RANGE / MULTIPLE / NONE)
     @Column(name = "date_type", nullable = false, length = 20)
     private String dateType;
 
-    // 일정 시작일 (SINGLE 기준: startDate == endDate)
-    @Column(name = "start_date", nullable = false)
+    // 일정 시작일 (NONE 타입일 경우 null)
+    @Column(name = "start_date", nullable = true)
     private LocalDate startDate;
 
-    // 일정 종료일
-    @Column(name = "end_date", nullable = false)
+    // 일정 종료일 (NONE 타입일 경우 null)
+    @Column(name = "end_date", nullable = true)
     private LocalDate endDate;
 
     // 생성 시각
@@ -58,7 +58,6 @@ public class AIResult {
         this.dates.add(new AIResultDate(this, date));
     }
 
-    // setter (비즈니스 필드만)
     public void setTitle(String title) {
         this.title = title;
     }
@@ -79,7 +78,6 @@ public class AIResult {
         this.endDate = endDate;
     }
 
-    // getter
     public Long getId() {
         return id;
     }

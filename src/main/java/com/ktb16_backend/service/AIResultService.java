@@ -24,9 +24,19 @@ public class AIResultService {
 
     public AIResultResponse save(AIResultRequest request) {
 
-        // 0️⃣ dateType 정규화 (프론트에서 소문자 들어오는 문제 방어)
         String dateType = request.dateType.toUpperCase();
         request.dateType = dateType;
+
+        AIResult aiResult = new AIResult();
+        aiResult.setTitle(request.title);
+        aiResult.setSummary(request.summary);
+        aiResult.setDateType(dateType);
+
+        if ("NONE".equals(dateType)) {
+            // 날짜 관련 로직 전부 스킵
+            AIResult saved = aiResultRepository.save(aiResult);
+            return AIResultResponse.from(saved);
+        }
 
         if ("RANGE".equals(dateType)
                 && (request.dates == null || request.dates.isEmpty())
@@ -55,30 +65,16 @@ public class AIResultService {
             }
         }
 
-        List<LocalDate> sortedDates = List.of();
-        if (request.dates != null && !request.dates.isEmpty()) {
-            sortedDates = request.dates.stream()
-                    .sorted()
-                    .toList();
-        }
-
-        AIResult aiResult = new AIResult();
-        aiResult.setTitle(request.title);
-        aiResult.setSummary(request.summary);
-        aiResult.setDateType(dateType);
+        List<LocalDate> sortedDates = request.dates.stream()
+                .sorted()
+                .toList();
 
         for (LocalDate date : sortedDates) {
             aiResult.getDates().add(new AIResultDate(aiResult, date));
         }
 
-        if (!sortedDates.isEmpty()) {
-            aiResult.setStartDate(sortedDates.get(0));
-            aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
-        } else {
-            // RANGE + 날짜 정보 없음
-            aiResult.setStartDate(null);
-            aiResult.setEndDate(null);
-        }
+        aiResult.setStartDate(sortedDates.get(0));
+        aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
 
         AIResult saved = aiResultRepository.save(aiResult);
         return AIResultResponse.from(saved);

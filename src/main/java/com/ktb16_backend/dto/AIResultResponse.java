@@ -26,6 +26,13 @@ public class AIResultResponse {
         response.summary = entity.getSummary();
         response.dateType = entity.getDateType();
 
+        if ("NONE".equals(entity.getDateType())) {
+            response.dates = List.of();
+            response.startDate = null;
+            response.endDate = null;
+            return response;
+        }
+
         response.dates = entity.getDates()
                 .stream()
                 .map(AIResultDate::getDate)
