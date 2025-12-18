@@ -2,13 +2,14 @@ package com.ktb16_backend.service;
 
 import com.ktb16_backend.domain.AIResult;
 import com.ktb16_backend.domain.AIResultDate;
+import com.ktb16_backend.dto.AIResultListResponse;
 import com.ktb16_backend.dto.AIResultRequest;
 import com.ktb16_backend.dto.AIResultResponse;
 import com.ktb16_backend.repository.AIResultRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.stream.Collectors;
+import java.util.List;
 
 @Service
 @Transactional
@@ -27,39 +28,36 @@ public class AIResultService {
         // 기본 필드 세팅
         aiResult.setTitle(request.title);
         aiResult.setSummary(request.summary);
-        aiResult.setCategory(request.category);
         aiResult.setDateType(request.dateType);
         aiResult.setStartDate(request.startDate);
         aiResult.setEndDate(request.endDate);
-        aiResult.setRawText(request.rawText);
 
-        // MULTIPLE 날짜 처리
+        // 날짜 타입이 MULTIPLE 인 경우
         if ("MULTIPLE".equals(request.dateType) && request.dates != null) {
-            request.dates.forEach(aiResult::addDate);
+            request.dates.forEach(date ->
+                    aiResult.getDates().add(new AIResultDate(aiResult, date))
+            );
         }
 
         AIResult saved = aiResultRepository.save(aiResult);
-
-        return toResponse(saved);
+        return AIResultResponse.from(saved);
     }
 
-    // Entity → Response
-    private AIResultResponse toResponse(AIResult aiResult) {
-        AIResultResponse res = new AIResultResponse();
-
-        res.id = aiResult.getId();
-        res.title = aiResult.getTitle();
-        res.summary = aiResult.getSummary();
-        res.category = aiResult.getCategory();
-        res.dateType = aiResult.getDateType();
-        res.startDate = aiResult.getStartDate();
-        res.endDate = aiResult.getEndDate();
-
-        res.dates = aiResult.getDates()
+    @Transactional(readOnly = true)
+    public List<AIResultListResponse> findAll() {
+        return aiResultRepository.findAllByOrderByCreatedAtDesc()
                 .stream()
-                .map(AIResultDate::getDate)
-                .collect(Collectors.toList());
+                .map(AIResultListResponse::from)
+                .toList();
+    }
 
-        return res;
+    @Transactional(readOnly = true)
+    public AIResultResponse findById(Long id) {
+        AIResult aiResult = aiResultRepository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("AIResult not found. id=" + id)
+                );
+
+        return AIResultResponse.from(aiResult);
     }
 }
