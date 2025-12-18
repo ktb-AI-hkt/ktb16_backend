@@ -4,18 +4,25 @@ import jakarta.persistence.*;
 import java.time.LocalDate;
 
 @Entity
-@Table(name = "ai_result_date")
+@Table(
+        name = "ai_result_date",
+        indexes = {
+                @Index(name = "idx_ai_result_date_ai_result_id", columnList = "ai_result_id"),
+                @Index(name = "idx_ai_result_date_date", columnList = "date")
+        }
+)
 public class AIResultDate {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // 식별 관계: AI_RESULT에 종속
-    @ManyToOne(fetch = FetchType.LAZY)
+    // AIResult에 종속
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "ai_result_id", nullable = false)
     private AIResult aiResult;
 
+    // 실제 일정 날짜
     @Column(nullable = false)
     private LocalDate date;
 

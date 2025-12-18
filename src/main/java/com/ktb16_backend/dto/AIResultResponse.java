@@ -5,7 +5,6 @@ import com.ktb16_backend.domain.AIResultDate;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AIResultResponse {
 
@@ -16,7 +15,6 @@ public class AIResultResponse {
     public String dateType;
 
     public LocalDate startDate;
-
     public LocalDate endDate;
 
     public List<LocalDate> dates;
@@ -29,25 +27,35 @@ public class AIResultResponse {
         response.summary = entity.getSummary();
         response.dateType = entity.getDateType();
 
-        // 타입별 날짜 매핑 (의미 기준)
         switch (entity.getDateType()) {
+
             case "SINGLE" -> {
-                response.startDate = entity.getStartDate();
+                LocalDate date = entity.getStartDate();
+                response.startDate = date;
+                response.endDate = date;
+                response.dates = List.of(date);
             }
+
             case "RANGE" -> {
                 response.startDate = entity.getStartDate();
                 response.endDate = entity.getEndDate();
+                response.dates = List.of(
+                        entity.getStartDate(),
+                        entity.getEndDate()
+                );
             }
+
             case "MULTIPLE" -> {
-                if (entity.getDates() != null && !entity.getDates().isEmpty()) {
-                    response.dates = entity.getDates()
-                            .stream()
-                            .map(AIResultDate::getDate)
-                            .collect(Collectors.toList());
-                }
+                response.dates = entity.getDates()
+                        .stream()
+                        .map(AIResultDate::getDate)
+                        .sorted()
+                        .toList();
+
+                response.startDate = response.dates.get(0);
+                response.endDate = response.dates.get(response.dates.size() - 1);
             }
         }
-
         return response;
     }
 }

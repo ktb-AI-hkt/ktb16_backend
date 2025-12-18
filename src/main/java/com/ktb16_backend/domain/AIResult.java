@@ -15,42 +15,37 @@ public class AIResult {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // AI가 추출한 일정 제목
     @Column(nullable = false)
     private String title;
 
+    // AI 요약 결과
     @Column(nullable = false, columnDefinition = "TEXT")
     private String summary;
 
-    @Column(nullable = false, length = 50)
-    private String category;
+    // 날짜 타입 (SINGLE / RANGE / MULTIPLE)
+    @Column(name = "date_type", nullable = false, length = 20)
+    private String dateType;
 
-    @Column(name = "date_type", nullable = false, length = 50)
-    private String dateType; // SINGLE / RANGE / MULTIPLE
-
-    @Column(name = "start_date")
+    // 일정 시작일 (SINGLE 기준: startDate == endDate)
+    @Column(name = "start_date", nullable = false)
     private LocalDate startDate;
 
-    @Column(name = "end_date")
+    // 일정 종료일
+    @Column(name = "end_date", nullable = false)
     private LocalDate endDate;
 
-    @Column(name = "raw_text", columnDefinition = "TEXT")
-    private String rawText;
-
+    // 생성 시각
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
-    // 관계
-    // AI_RESULT (1) : AI_RESULT_DATE (0..N) - 식별 관계
+    // AI_RESULT (1) : AI_RESULT_DATE (0..N)
     @OneToMany(
             mappedBy = "aiResult",
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
     private List<AIResultDate> dates = new ArrayList<>();
-
-    // AI_RESULT (1) : CALENDAR_EVENT (0..N) - 비식별 관계
-    @OneToMany(mappedBy = "aiResult")
-    private List<CalendarEvent> calendarEvents = new ArrayList<>();
 
     // 생성 시각 자동 세팅
     @PrePersist
@@ -63,17 +58,13 @@ public class AIResult {
         this.dates.add(new AIResultDate(this, date));
     }
 
-    // (연관관계 제외)
+    // setter (비즈니스 필드만)
     public void setTitle(String title) {
         this.title = title;
     }
 
     public void setSummary(String summary) {
         this.summary = summary;
-    }
-
-    public void setCategory(String category) {
-        this.category = category;
     }
 
     public void setDateType(String dateType) {
@@ -86,10 +77,6 @@ public class AIResult {
 
     public void setEndDate(LocalDate endDate) {
         this.endDate = endDate;
-    }
-
-    public void setRawText(String rawText) {
-        this.rawText = rawText;
     }
 
     // getter
@@ -105,10 +92,6 @@ public class AIResult {
         return summary;
     }
 
-    public String getCategory() {
-        return category;
-    }
-
     public String getDateType() {
         return dateType;
     }
@@ -121,19 +104,11 @@ public class AIResult {
         return endDate;
     }
 
-    public String getRawText() {
-        return rawText;
-    }
-
     public LocalDateTime getCreatedAt() {
         return createdAt;
     }
 
     public List<AIResultDate> getDates() {
         return dates;
-    }
-
-    public List<CalendarEvent> getCalendarEvents() {
-        return calendarEvents;
     }
 }

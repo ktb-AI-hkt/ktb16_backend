@@ -17,6 +17,7 @@ public class AIResultListResponse {
     private String dateType;
     private LocalDate startDate;
     private LocalDate endDate;
+
     private LocalDateTime createdAt;
 
     public static AIResultListResponse from(AIResult entity) {

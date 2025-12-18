@@ -32,22 +32,30 @@ public class AIResultService {
             throw new IllegalArgumentException("SINGLE dateType requires exactly one date");
         }
 
+        if ("RANGE".equals(request.dateType) && request.dates.size() != 2) {
+            throw new IllegalArgumentException("RANGE dateType requires exactly two dates");
+        }
+
         if ("MULTIPLE".equals(request.dateType) && request.dates.size() < 2) {
             throw new IllegalArgumentException("MULTIPLE dateType requires two or more dates");
         }
+
+        List<LocalDate> sortedDates = request.dates.stream()
+                .sorted()
+                .toList();
 
         AIResult aiResult = new AIResult();
         aiResult.setTitle(request.title);
         aiResult.setSummary(request.summary);
         aiResult.setDateType(request.dateType);
 
-        for (LocalDate date : request.dates) {
+        for (LocalDate date : sortedDates) {
             AIResultDate aiResultDate = new AIResultDate(aiResult, date);
             aiResult.getDates().add(aiResultDate);
         }
 
-        aiResult.setStartDate(request.dates.get(0));
-        aiResult.setEndDate(request.dates.get(request.dates.size() - 1));
+        aiResult.setStartDate(sortedDates.get(0));
+        aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
 
         AIResult saved = aiResultRepository.save(aiResult);
 
@@ -70,5 +78,14 @@ public class AIResultService {
                 );
 
         return AIResultResponse.from(aiResult);
+    }
+
+    public void delete(Long id) {
+        AIResult aiResult = aiResultRepository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("AIResult not found. id=" + id)
+                );
+
+        aiResultRepository.delete(aiResult);
     }
 }
