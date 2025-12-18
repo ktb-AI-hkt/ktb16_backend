@@ -35,7 +35,6 @@ server:
     include-message: always
     include-binding-errors: always
 
-# Actuator for health checks (required for Docker HEALTHCHECK)
 management:
   endpoints:
     web:
@@ -49,7 +48,6 @@ management:
     defaults:
       enabled: true
 
-# Logging
 logging:
   level:
     root: ${LOG_LEVEL:INFO}
