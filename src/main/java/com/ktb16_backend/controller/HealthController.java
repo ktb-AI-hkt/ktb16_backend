@@ -15,7 +15,7 @@ public class HealthController {
             description = "서버가 정상적으로 동작 중인지 확인합니다."
     )
     @ApiResponse(responseCode = "200", description = "서버 정상 동작")
-    @GetMapping("/health")
+    @GetMapping("api/health")
     public String health() {
         return "OK";
     }
