@@ -24,25 +24,28 @@ public class AIResultService {
 
     public AIResultResponse save(AIResultRequest request) {
 
-        if (request.dates == null || request.dates.isEmpty()) {
-            throw new IllegalArgumentException("dates must not be empty");
+        if ("SINGLE".equals(request.dateType)) {
+            if (request.dates == null || request.dates.size() != 1) {
+                throw new IllegalArgumentException(
+                        "SINGLE dateType requires exactly one date"
+                );
+            }
         }
 
-        if ("SINGLE".equals(request.dateType) && request.dates.size() != 1) {
-            throw new IllegalArgumentException("SINGLE dateType requires exactly one date");
+        if ("MULTIPLE".equals(request.dateType)) {
+            if (request.dates == null || request.dates.size() < 2) {
+                throw new IllegalArgumentException(
+                        "MULTIPLE dateType requires two or more dates"
+                );
+            }
         }
 
-        if ("RANGE".equals(request.dateType) && request.dates.size() != 2) {
-            throw new IllegalArgumentException("RANGE dateType requires exactly two dates");
+        List<LocalDate> sortedDates = List.of();
+        if (request.dates != null && !request.dates.isEmpty()) {
+            sortedDates = request.dates.stream()
+                    .sorted()
+                    .toList();
         }
-
-        if ("MULTIPLE".equals(request.dateType) && request.dates.size() < 2) {
-            throw new IllegalArgumentException("MULTIPLE dateType requires two or more dates");
-        }
-
-        List<LocalDate> sortedDates = request.dates.stream()
-                .sorted()
-                .toList();
 
         AIResult aiResult = new AIResult();
         aiResult.setTitle(request.title);
@@ -50,12 +53,17 @@ public class AIResultService {
         aiResult.setDateType(request.dateType);
 
         for (LocalDate date : sortedDates) {
-            AIResultDate aiResultDate = new AIResultDate(aiResult, date);
-            aiResult.getDates().add(aiResultDate);
+            aiResult.getDates().add(new AIResultDate(aiResult, date));
         }
 
-        aiResult.setStartDate(sortedDates.get(0));
-        aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
+        if (!sortedDates.isEmpty()) {
+            aiResult.setStartDate(sortedDates.get(0));
+            aiResult.setEndDate(sortedDates.get(sortedDates.size() - 1));
+        } else {
+            // RANGE + dates 없음
+            aiResult.setStartDate(null);
+            aiResult.setEndDate(null);
+        }
 
         AIResult saved = aiResultRepository.save(aiResult);
 
